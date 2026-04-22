@@ -4,18 +4,58 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id         String       @id @default(uuid())
+  name       String
+  email      String    @unique
+  apiKey     String    @unique
+  createdAt  DateTime  @default(now())
+
+  users      User[]
+  resumes    Resume[]
 }
 
 model Resume {
-  id String @id @default(uuid())
-  name String?
-  email String?
-  content String?
-  createdAt DateTime @default(now())
+  id            String       @id @default(uuid())
+  fileName      String
+  fullName      String?
+  email         String?
+  confidence    Float?
+  processingMs  Int?
+  costBrl       Float?
+  createdAt     DateTime?
+  dataJson      String
+
+  companyId     String
+  company       Company @relation(fields: [companyId], references: [id])
+}
+
+model Role {
+  id        String     @id @default(uuid())
+  name      String  @unique // admin | mod | recruiter
+
+  users     User[]
+}
+
+model User {
+  id          String      @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String
+
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  roleId      String
+  role        Role     @relation(fields: [roleId], references: [id])
+
+  createdAt   DateTime @default(now())
 }
