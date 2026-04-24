@@ -21,77 +21,84 @@ enum Status {
 }
 
 model Company {
-  id         String       @id @default(uuid())
-  name       String
-  email      String    @unique
-  apiKey     String    @unique
+  id     String @id @default(uuid())
+  name   String
+  email  String @unique
+  apiKey String @unique
 
-  status     Status      @default(ACTIVE)
+  status Status @default(ACTIVE)
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  users      User[]
-  resumes    Resume[]
+  users   User[]
+  resumes Resume[]
 }
 
 model Resume {
-  id            String       @id @default(uuid())
-  fileName      String
-  fullName      String?
-  email         String?
-  confidence    Float?
-  processingMs  Int?
-  costBrl       Float?
-  createdAt     DateTime?
-  dataJson      String
+  id           String  @id @default(uuid())
+  fileName     String
+  fullName     String?
+  email        String?
+  confidence   Float?
+  processingMs Int?
+  costBrl      Float?
+  dataJson     Json?
 
-  companyId     String
-  company       Company @relation(fields: [companyId], references: [id])
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation("CreatedByUser", fields: [createdById], references: [id])
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 }
 
 model Role {
-  id        String     @id @default(uuid())
-  name      String  @unique // admin | mod | recruiter
+  id   String @id @default(uuid())
+  name String @unique // admin | mod | recruiter
 
-  users     User[]
+  users User[]
 }
 
 model User {
-  id          String      @id @default(uuid())
-  name        String
-  email       String   @unique
-  password    String
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
 
-  status      Status   @default(ACTIVE)
+  status Status @default(ACTIVE)
 
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 
-  roleId      String
-  role        Role     @relation(fields: [roleId], references: [id])
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdResumes Resume[] @relation("CreatedByUser")
 
   auditLogsPerformed AuditLog[] @relation("PerformedBy")
 }
 
 model AuditLog {
-  id                String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  entityType        String
-  entityId          String
+  entityType String
+  entityId   String
 
-  action            String
+  action String
 
-  oldValue          String?
-  newValue          String?
+  oldValue String?
+  newValue String?
 
   performedByUserId String
-  performedBy       User      @relation("PerformedBy", fields: [performedByUserId], references: [id])
+  performedBy       User   @relation("PerformedBy", fields: [performedByUserId], references: [id])
 
-  performedByName   String
+  performedByName String
 
-  createdAt         DateTime  @default(now())
+  createdAt DateTime @default(now())
 }

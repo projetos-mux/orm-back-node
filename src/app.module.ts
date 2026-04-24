@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
 import { UserModule } from './user/user.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { ResumesModule } from './resumes/resumes.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     AuthModule,
     CompanyModule,
     UserModule,
-    AuditLogModule
+    AuditLogModule,
+    ResumesModule
   ],
   controllers: [AppController],
   providers: [AppService],
