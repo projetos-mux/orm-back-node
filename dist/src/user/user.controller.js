@@ -19,6 +19,7 @@ const roles_guard_1 = require("../auth/guards/roles.guard");
 const user_service_1 = require("./user.service");
 const roles_decorator_1 = require("../auth/decorator/roles.decorator");
 const create_user_dto_1 = require("./dto/create-user.dto");
+const update_user_status_dto_1 = require("./dto/update-user-status.dto");
 let userController = class userController {
     userService;
     constructor(userService) {
@@ -29,6 +30,9 @@ let userController = class userController {
     }
     async listAll() {
         return this.userService.listAll();
+    }
+    async updateStatus(id, dto, req) {
+        return this.userService.updateStatus(id, dto.status, req.user);
     }
 };
 exports.userController = userController;
@@ -47,6 +51,17 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], userController.prototype, "listAll", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'mod'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_user_status_dto_1.UpdateUserStatusDto, Object]),
+    __metadata("design:returntype", Promise)
+], userController.prototype, "updateStatus", null);
 exports.userController = userController = __decorate([
     (0, common_1.Controller)('api/v1/users'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

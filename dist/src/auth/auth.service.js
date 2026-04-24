@@ -66,6 +66,9 @@ let AuthService = class AuthService {
         if (!company) {
             throw new common_1.NotFoundException('Empresa não encontrada para esta chave de API');
         }
+        if (company.status !== 'ACTIVE') {
+            throw new common_1.ForbiddenException('Empresa inativa ou bloqueada');
+        }
         const user = await this.prisma.user.findUnique({
             where: { email },
             include: {
@@ -75,6 +78,9 @@ let AuthService = class AuthService {
         });
         if (!user) {
             throw new common_1.UnauthorizedException('Credenciais inválidas');
+        }
+        if (user.status !== 'ACTIVE') {
+            throw new common_1.ForbiddenException('Usuário inativo ou bloqueado');
         }
         const passwordIsValid = await bcrypt.compare(password, user.password);
         if (!passwordIsValid) {

@@ -10,14 +10,19 @@ exports.CompanyModule = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../prisma/prisma.module");
 const auth_module_1 = require("../auth/auth.module");
-const company_controller_1 = require("./controller/company.controller");
+const company_controller_1 = require("./company.controller");
 const company_service_1 = require("./company.service");
+const audit_log_module_1 = require("../audit-log/audit-log.module");
 let CompanyModule = class CompanyModule {
 };
 exports.CompanyModule = CompanyModule;
 exports.CompanyModule = CompanyModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule],
+        imports: [
+            prisma_module_1.PrismaModule,
+            auth_module_1.AuthModule,
+            audit_log_module_1.AuditLogModule
+        ],
         controllers: [company_controller_1.CompanyController],
         providers: [company_service_1.CompanyService],
     })

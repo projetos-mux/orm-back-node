@@ -46,10 +46,13 @@ exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
+const audit_log_service_1 = require("../audit-log/audit-log.service");
 let UserService = class UserService {
     prismaService;
-    constructor(prismaService) {
+    auditLogService;
+    constructor(prismaService, auditLogService) {
         this.prismaService = prismaService;
+        this.auditLogService = auditLogService;
     }
     async create(dto) {
         const existingUser = await this.prismaService.user.findUnique({
@@ -94,10 +97,54 @@ let UserService = class UserService {
             orderBy: { createdAt: 'desc' },
         });
     }
+    async updateStatus(targetUserId, newStatus, currentUser) {
+        const targetUser = await this.prismaService.user.findUnique({
+            where: {
+                id: targetUserId,
+            },
+            include: {
+                role: true,
+            },
+        });
+        if (!targetUser) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        if (currentUser.userId === targetUser.id && newStatus === 'DELETED') {
+            throw new common_1.ForbiddenException('Você não pode deletar seu próprio usuário');
+        }
+        if (currentUser.role === 'mod' &&
+            targetUser.companyId !== currentUser.companyId) {
+            throw new common_1.ForbiddenException('Sem permissão para alterar este usuário');
+        }
+        if (currentUser.role === 'mod' &&
+            targetUser.role.name === 'admin') {
+            throw new common_1.ForbiddenException('Sem permissão para alterar este usuário');
+        }
+        const oldStatus = targetUser.status;
+        const updatedUser = await this.prismaService.user.update({
+            where: {
+                id: targetUserId,
+            },
+            data: {
+                status: newStatus,
+            },
+        });
+        await this.auditLogService.create({
+            entityType: 'USER',
+            entityId: targetUser.id,
+            action: 'UPDATE_STATUS',
+            oldValue: oldStatus,
+            newValue: newStatus,
+            performedByUserId: currentUser.userId,
+            performedByName: currentUser.email,
+        });
+        return updatedUser;
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        audit_log_service_1.AuditLogService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

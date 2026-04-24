@@ -1,11 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import * as bcrypt from 'bcrypt'
+import { AuthUser } from "../auth/strategies/jwt.strategy";
+import { Status } from "@prisma/client";
+import { AuditLogService } from "../audit-log/audit-log.service";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly auditLogService: AuditLogService,
+  ) { }
 
   async create(dto: CreateUserDto) {
     const existingUser = await this.prismaService.user.findUnique({
@@ -57,5 +63,73 @@ export class UserService {
       },
       orderBy: { createdAt: 'desc' },
     })
+  }
+
+  async updateStatus(
+    targetUserId: string,
+    newStatus: Status,
+    currentUser: AuthUser,
+  ) {
+    const targetUser = await this.prismaService.user.findUnique({
+      where: {
+        id: targetUserId,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException(
+        'Usuário não encontrado',
+      );
+    }
+
+    if (currentUser.userId === targetUser.id && newStatus === 'DELETED') {
+      throw new ForbiddenException(
+        'Você não pode deletar seu próprio usuário',
+      )
+    }
+
+    if (
+      currentUser.role === 'mod' &&
+      targetUser.companyId !== currentUser.companyId
+    ) {
+      throw new ForbiddenException(
+        'Sem permissão para alterar este usuário',
+      );
+    }
+
+    if (
+      currentUser.role === 'mod' &&
+      targetUser.role.name === 'admin'
+    ) {
+      throw new ForbiddenException(
+        'Sem permissão para alterar este usuário',
+      );
+    }
+
+    const oldStatus = targetUser.status;
+
+    const updatedUser = await this.prismaService.user.update({
+      where: {
+        id: targetUserId,
+      },
+      data: {
+        status: newStatus,
+      },
+    });
+
+    await this.auditLogService.create({
+      entityType: 'USER',
+      entityId: targetUser.id,
+      action: 'UPDATE_STATUS',
+      oldValue: oldStatus,
+      newValue: newStatus,
+      performedByUserId: currentUser.userId,
+      performedByName: currentUser.email,
+    });
+
+    return updatedUser;
   }
 }

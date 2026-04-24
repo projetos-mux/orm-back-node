@@ -7,7 +7,7 @@ import { AuthUser } from "../strategies/jwt.strategy";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<
@@ -21,7 +21,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Usuário não encontrado');
     }
 
-    if (!!requiredRoles.includes(user.role)) {
+    if (!requiredRoles.includes(user.role)) {
       throw new ForbiddenException('Sem permissão para esta operação');
     }
 

@@ -27,7 +27,7 @@ let RolesGuard = class RolesGuard {
         if (!user) {
             throw new common_1.ForbiddenException('Usuário não encontrado');
         }
-        if (!!requiredRoles.includes(user.role)) {
+        if (!requiredRoles.includes(user.role)) {
             throw new common_1.ForbiddenException('Sem permissão para esta operação');
         }
         return true;

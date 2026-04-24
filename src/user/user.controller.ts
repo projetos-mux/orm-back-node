@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { UserService } from "./user.service";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserStatusDto } from "./dto/update-user-status.dto";
 
 
 @Controller('api/v1/users')
@@ -21,5 +22,20 @@ export class userController {
   @Roles('admin')
   async listAll() {
     return this.userService.listAll();
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'mod')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserStatusDto,
+    @Req() req: any,
+  ) {
+    return this.userService.updateStatus(
+      id,
+      dto.status,
+      req.user
+    )
   }
 }

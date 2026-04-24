@@ -14,11 +14,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CompanyController = void 0;
 const common_1 = require("@nestjs/common");
-const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../../auth/guards/roles.guard");
-const company_service_1 = require("../company.service");
-const create_company_dto_1 = require("../dto/create-company.dto");
-const roles_decorator_1 = require("../../auth/decorator/roles.decorator");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const company_service_1 = require("./company.service");
+const create_company_dto_1 = require("./dto/create-company.dto");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
+const update_company_status_dto_1 = require("./dto/update-company-status.dto");
 let CompanyController = class CompanyController {
     companyService;
     constructor(companyService) {
@@ -29,6 +30,9 @@ let CompanyController = class CompanyController {
     }
     async listAll() {
         return this.companyService.listAll();
+    }
+    async updateStatus(id, dto, req) {
+        return this.companyService.updateStatus(id, dto.status, req.user);
     }
 };
 exports.CompanyController = CompanyController;
@@ -47,6 +51,17 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], CompanyController.prototype, "listAll", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_company_status_dto_1.updateCompanyStatusDto, Object]),
+    __metadata("design:returntype", Promise)
+], CompanyController.prototype, "updateStatus", null);
 exports.CompanyController = CompanyController = __decorate([
     (0, common_1.Controller)('api/v1/companies'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
