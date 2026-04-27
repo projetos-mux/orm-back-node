@@ -1,98 +1,198 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# ORM Intelligence — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend principal da plataforma **ORM Intelligence**, focada em análise inteligente de currículos com IA, matching de candidatos e recrutamento orientado por dados.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Este projeto utiliza:
 
-## Description
+- NestJS
+- Prisma ORM
+- PostgreSQL
+- JWT Authentication
+- OpenAI Integration
+- Audit Logs
+- Multi-tenant Architecture
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+# Pré-requisitos
 
-```bash
-$ npm install
+Antes de iniciar, certifique-se de possuir instalado:
+
+- Node.js
+- npm
+- PostgreSQL
+- Prisma CLI
+
+---
+
+# Variáveis de Ambiente
+
+Crie um arquivo:
+
+```env
+.env
 ```
 
-## Compile and run the project
+com as variáveis:
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```env
+DATABASE_URL=
+JWT_SECRET=
+OPENAI_API_KEY=
+PORT=
 ```
 
-## Run tests
+Exemplo:
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/orm_dev"
+JWT_SECRET="your_secret_here"
+OPENAI_API_KEY="your_openai_key"
+PORT=3000
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+# Instalação
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 1. Instalar dependências
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 2. Gerar Prisma Client
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+npx prisma generate
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 3. Executar migrations
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npx prisma migrate dev
+```
 
-## Stay in touch
+Caso precise criar uma nova migration:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npx prisma migrate dev --name nome_da_migration
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 4. Rodar o projeto
+
+```bash
+npm run start:dev
+```
+
+O backend iniciará em:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# Fluxo de Login
+
+Após autenticação:
+
+```text
+POST /api/v1/auth/login
+↓
+GET /api/v1/users/profile
+```
+
+O frontend utiliza esse fluxo para montar a sessão do usuário.
+
+---
+
+# Observações importantes
+
+## Prisma utiliza camelCase
+
+Sempre utilizar:
+
+```ts
+createdAt
+fileName
+processingMs
+costBrl
+dataJson
+```
+
+e nunca:
+
+```ts
+created_at
+file_name
+processing_ms
+cost_brl
+data_json
+```
+
+---
+
+## Não subir para o Git
+
+Nunca versionar:
+
+```text
+dist/
+node_modules/
+.env
+```
+
+Esses arquivos devem permanecer no `.gitignore`.
+
+---
+
+# Comandos úteis
+
+## Resetar banco local
+
+```bash
+npx prisma migrate reset
+```
+
+---
+
+## Visualizar banco com Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+---
+
+## Regerar Prisma após alteração no schema
+
+```bash
+npx prisma generate
+```
+
+---
+
+# Branch recomendada
+
+Fluxo sugerido:
+
+```text
+feature/*
+↓
+pull request
+↓
+review
+↓
+merge
+```
+
+Evitar commits diretos na `main/master`.
+
+---
