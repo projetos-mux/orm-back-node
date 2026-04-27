@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, Request, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { UserService } from "./user.service";
@@ -10,7 +10,7 @@ import { UpdateUserStatusDto } from "./dto/update-user-status.dto";
 @Controller('api/v1/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class userController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Post()
   @Roles('admin')
@@ -37,5 +37,15 @@ export class userController {
       dto.status,
       req.user
     )
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(
+    @Request() req,
+  ) {
+    return this.userService.getProfile(
+      req.user.userId,
+    );
   }
 }

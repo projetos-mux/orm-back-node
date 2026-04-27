@@ -64,7 +64,7 @@ export class UploadService {
           companyId: user.companyId,
           createdById: user.id,
 
-          fullName: aiResult.full_name,
+          fullName: aiResult.fullName,
           email: aiResult.email,
           confidence: aiResult.confidence,
 

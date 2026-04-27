@@ -132,4 +132,35 @@ export class UserService {
 
     return updatedUser;
   }
+
+  async getProfile(userId: string) {
+    const user =
+      await this.prismaService.user.findUnique({
+        where: {
+          id: userId,
+        },
+        include: {
+          company: true,
+          role: true,
+        },
+      });
+
+    if (!user) {
+      throw new NotFoundException(
+        'Usuário não encontrado',
+      );
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      companyId: user.companyId,
+      companyName:
+        user.company?.name || null,
+      role:
+        user.role?.name || null,
+      status: user.status,
+    };
+  }
 }

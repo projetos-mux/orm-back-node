@@ -23,39 +23,93 @@ export class OpenaiService {
     );
 
     const prompt = `
-    Extraia SOMENTE informações presentes no currículo e retorne um JSON estruturado corretamente.
+      Extraia SOMENTE informações presentes no currículo e retorne um JSON estruturado corretamente.
 
-    REGRAS:
-    - Não invente dados
-    - Não normalize textos
-    - Não altere e-mails, telefones ou datas
-    - Se não existir no currículo, deixe vazio
+      REGRAS IMPORTANTES:
 
-    Formato obrigatório:
+      - Não invente dados
+      - Não normalize textos
+      - Não alterar e-mails, telefones ou datas
+      - Se não existir no currículo, deixe vazio
+      - Sempre retornar JSON válido
+      - Nunca retornar texto fora do JSON
 
-    {
-      "full_name": "",
-      "email": "",
-      "phones": [],
-      "location": {
-        "city": "",
-        "state": "",
-        "cep": ""
-      },
-      "summary": "",
-      "qualifications": "",
-      "skills": [],
-      "education": [],
-      "courses": [],
-      "experience": [],
-      "language": [],
-      "role": "",
-      "confidence": 0.9
-    }
+      REGRAS DE ESTRUTURA:
 
-    Currículo:
-    ${text}
-    `;
+      1. Para experiências profissionais:
+      - usar "period" ao invés de "start" e "end"
+      - exemplo: "2022 - 2024" ou "Conclusão: 2026"
+
+      2. Para descrições de experiência:
+      - se houver múltiplos itens, bullet points, traços (-), responsabilidades ou listas,
+      retorne SEMPRE como array de strings em "description"
+
+      Exemplo correto:
+
+      "description": [
+        "Desenvolvimento de interfaces com React",
+        "Integração com APIs REST",
+        "Criação de testes unitários"
+      ]
+
+      Nunca retornar:
+
+      "description": "- item 1\\n- item 2"
+
+      3. Para educação:
+      - usar "period"
+      - usar:
+      {
+        "course": "",
+        "institution": "",
+        "period": "",
+        "status": ""
+      }
+
+      4. Para experience:
+      usar:
+
+      {
+        "role": "",
+        "company": "",
+        "period": "",
+        "description": []
+      }
+
+      5. Para courses:
+      - retornar como array simples de strings
+
+      6. Para skills:
+      - retornar como array simples de strings
+
+      7. Para qualifications:
+      - manter como texto corrido se não houver divisão clara
+
+      Formato obrigatório:
+
+      {
+        "fullName": "",
+        "email": "",
+        "phones": [],
+        "location": {
+          "city": "",
+          "state": "",
+          "cep": ""
+        },
+        "summary": "",
+        "qualifications": "",
+        "skills": [],
+        "education": [],
+        "courses": [],
+        "experience": [],
+        "language": [],
+        "role": "",
+        "confidence": 0.9
+      }
+
+      Currículo:
+      ${text}
+      `;
 
     try {
       const completion =

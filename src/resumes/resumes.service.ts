@@ -118,4 +118,167 @@ export class ResumesService {
       },
     });
   }
+
+  async getRecentResumes(companyId: string) {
+    return this.prisma.resume.findMany({
+      where: {
+        companyId,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 3,
+      select: {
+        id: true,
+        fileName: true,
+        fullName: true,
+        email: true,
+        confidence: true,
+        processingMs: true,
+        costBrl: true,
+        createdAt: true,
+        dataJson: true,
+      },
+    })
+  }
+
+  async softDeleteResume(id: string, companyId: string, userId: string, userName: string) {
+    const resume = await this.prisma.resume.findFirst({
+      where: {
+        id,
+        companyId,
+        deletedAt: null
+      },
+    })
+
+    if (!resume) {
+      throw new NotFoundException('Currículo não encontrado');
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        entityType: 'resume',
+        entityId: id,
+        action: 'SOFT_DELETE',
+        oldValue: JSON.stringify(resume),
+        newValue: null,
+        performedByUserId: userId,
+        performedByName: userName,
+      },
+    });
+
+    return this.prisma.resume.update({
+      where: {
+        id
+      },
+      data: {
+        deletedAt: new Date()
+      }
+    })
+  }
+
+  async hardDeleteResume(id: string, userId: string, userName: string) {
+    const resume = await this.prisma.resume.findUnique({
+      where: {
+        id,
+      }
+    })
+
+    if (!resume) {
+      throw new NotFoundException('Currículo não encontrado')
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        entityType: 'resume',
+        entityId: id,
+        action: 'HARD_DELETE',
+        oldValue: JSON.stringify(resume),
+        newValue: null,
+        performedByUserId: userId,
+        performedByName: userName,
+      },
+    });
+
+    return this.prisma.resume.delete({
+      where: {
+        id,
+      }
+    })
+  }
+
+  async restoreResume(
+    id: string,
+    companyId: string,
+    userId: string,
+    userName: string
+  ) {
+    const resume = await this.prisma.resume.findFirst({
+      where: { id, companyId, deletedAt: { not: null } }
+    });
+
+    if (!resume) {
+      throw new NotFoundException('Currículo não encontrado');
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        entityType: 'resume',
+        entityId: id,
+        action: 'RESTORE',
+        oldValue: JSON.stringify(resume),
+        newValue: JSON.stringify({
+          deletedAt: null,
+        }),
+        performedByUserId: userId,
+        performedByName: userName,
+      },
+    });
+
+    return this.prisma.resume.update({
+      where: {
+        id,
+      },
+      data: {
+        deletedAt: null,
+      },
+    });
+  }
+
+  async downloadResumePdf(
+    id: string,
+    companyId: string,
+    userId: string,
+    userName: string,
+  ) {
+    const resume = await this.prisma.resume.findFirst({
+      where: {
+        id,
+        companyId,
+        deletedAt: null,
+      },
+    });
+
+    if (!resume) {
+      throw new NotFoundException(
+        'Currículo não encontrado',
+      );
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        entityType: 'resume',
+        entityId: id,
+        action: 'DOWNLOAD',
+        oldValue: null,
+        newValue: JSON.stringify({
+          action: 'PDF_DOWNLOAD',
+        }),
+        performedByUserId: userId,
+        performedByName: userName,
+      },
+    });
+
+    return resume;
+  }
 }
