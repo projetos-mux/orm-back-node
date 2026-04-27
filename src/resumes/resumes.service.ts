@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { ListResumeDto } from './dto/list-resume.dto';
+import { SearchResumeDto } from './dto/search-resume.dto';
 
 @Injectable()
 export class ResumesService {
@@ -92,31 +93,6 @@ export class ResumesService {
         totalPages: Math.ceil(total / pageSize),
       },
     };
-  }
-
-  async remove(id: string, user: any) {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id },
-    });
-
-    if (!resume || resume.deletedAt) {
-      throw new NotFoundException('Currículo não encontrado');
-    }
-
-    const isAdmin = user.role?.name === 'admin';
-
-    if (!isAdmin && resume.companyId !== user.companyId) {
-      throw new ForbiddenException(
-        'Você não pode excluir este currículo',
-      );
-    }
-
-    return this.prisma.resume.update({
-      where: { id },
-      data: {
-        deletedAt: new Date(),
-      },
-    });
   }
 
   async getRecentResumes(companyId: string) {
@@ -280,5 +256,198 @@ export class ResumesService {
     });
 
     return resume;
+  }
+
+  private tokenize(text?: string): string[] {
+    if (!text) return [];
+    return text
+      .toLowerCase()
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+  }
+
+  private calculateMatchScore(
+    resume: any,
+    filters: SearchResumeDto,
+  ): number {
+    let score = 0;
+    let total = 0;
+
+    const data = resume.dataJson || {};
+
+    if (filters.query) {
+      const tokens = this.tokenize(filters.query);
+
+      const searchableText = `
+      ${resume.fullName || ''}
+      ${resume.email || ''}
+      ${JSON.stringify(data)}
+    `.toLowerCase();
+
+      total += tokens.length;
+
+      score += tokens.filter(token =>
+        searchableText.includes(token),
+      ).length;
+    }
+
+    if (filters.skills) {
+      const searchedSkills =
+        this.tokenize(filters.skills);
+
+      const candidateSkills =
+        (data.skills || []).map((s: string) =>
+          s.toLowerCase(),
+        );
+
+      total += searchedSkills.length;
+
+      score += searchedSkills.filter(skill =>
+        candidateSkills.some(candidate =>
+          candidate.includes(skill),
+        ),
+      ).length;
+    }
+
+    if (filters.title) {
+      const title =
+        (data.role || '').toLowerCase();
+
+      total += 1;
+
+      if (
+        title.includes(
+          filters.title.toLowerCase(),
+        )
+      ) {
+        score += 1;
+      }
+    }
+
+    if (filters.city) {
+      const city =
+        data.location?.city?.toLowerCase() || '';
+
+      total += 1;
+
+      if (
+        city.includes(
+          filters.city.toLowerCase(),
+        )
+      ) {
+        score += 1;
+      }
+    }
+
+    if (filters.degree) {
+      const educationText = JSON.stringify(
+        data.education || [],
+      ).toLowerCase();
+
+      total += 1;
+
+      if (
+        educationText.includes(
+          filters.degree.toLowerCase(),
+        )
+      ) {
+        score += 1;
+      }
+    }
+
+    if (total === 0) {
+      return 100;
+    }
+
+    return Math.round((score / total) * 100);
+  }
+
+
+  async findAllWithCompatibility(
+    user: any,
+    query: SearchResumeDto,
+  ) {
+    const isAdmin =
+      user.role === 'admin' ||
+      user.role?.name === 'admin';
+
+    const page = Number(query.page || 1);
+    const pageSize = Number(query.pageSize || 10);
+
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {
+      deletedAt: null,
+    };
+
+    if (!isAdmin) {
+      where.companyId = user.companyId;
+    }
+
+    if (query.confidenceMin) {
+      where.confidence = {
+        gte: Number(query.confidenceMin),
+      };
+    }
+
+    const resumes =
+      await this.prisma.resume.findMany({
+        where,
+        include: {
+          company: true,
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+    const rankedResumes = resumes.map(
+      (resume) => {
+        const compatibility =
+          this.calculateMatchScore(
+            resume,
+            query,
+          );
+
+        return {
+          ...resume,
+          compatibility,
+        };
+      },
+    );
+
+    rankedResumes.sort(
+      (a, b) =>
+        b.compatibility -
+        a.compatibility,
+    );
+
+    const paginatedData =
+      rankedResumes.slice(
+        skip,
+        skip + pageSize,
+      );
+
+    return {
+      data: paginatedData,
+      pagination: {
+        page,
+        pageSize,
+        totalItems:
+          rankedResumes.length,
+        totalPages: Math.ceil(
+          rankedResumes.length /
+          pageSize,
+        ),
+      },
+    };
   }
 }
