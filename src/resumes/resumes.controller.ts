@@ -120,7 +120,7 @@ export class ResumesController {
     @Param('id') id: string,
     @Request() req,
   ) {
-    return this.resumesService.softDeleteResume(id, req.user.companyId, req.user.userId, req.user.name)
+    return this.resumesService.softDeleteResume(id, req.user.companyId, req.user.userId, req.user.email)
   }
 
   @Delete('/admin/:id/permanent')
@@ -158,7 +158,7 @@ export class ResumesController {
         id,
         req.user.companyId,
         req.user.userId,
-        req.user.name,
+        req.user.email,
       );
 
     return this.resumePdfService.generate(

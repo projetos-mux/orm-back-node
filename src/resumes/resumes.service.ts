@@ -99,6 +99,7 @@ export class ResumesService {
     return this.prisma.resume.findMany({
       where: {
         companyId,
+        deletedAt: null
       },
       orderBy: {
         createdAt: 'desc'
